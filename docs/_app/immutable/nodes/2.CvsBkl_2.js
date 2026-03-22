@@ -1,0 +1,1 @@
+import{a as t,f as e}from"../chunks/wreLh8bK.js";import"../chunks/vvcc0mFH.js";import{n as a}from"../chunks/DdWzhWhj.js";var m=e("<h1>Grocer</h1> <p>Welcome to Grocer - Your grocery list tracker</p>",1);function f(r){var o=m();a(2),t(r,o)}export{f as component};
