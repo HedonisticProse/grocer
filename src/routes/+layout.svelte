@@ -1,6 +1,7 @@
 <script>
 	import { onMount } from 'svelte';
 	import { initializeServices } from '$lib/services';
+	import '$lib/styles/global.css';
 
 	let initialized = false;
 	/** @type {string | null} */
