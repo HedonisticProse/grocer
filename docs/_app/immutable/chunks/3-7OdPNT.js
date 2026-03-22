@@ -1,0 +1,1 @@
+import{b as t,f as e}from"./Dy8VMRBJ.js";import"./CXf_82k2.js";import{Q as a}from"./D4cRwju5.js";var m=e("<h1>Grocer</h1> <p>Welcome to Grocer - Your grocery list tracker</p>",1);function f(r){var o=m();a(2),t(r,o)}export{f as component};
