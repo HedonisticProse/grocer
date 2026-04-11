@@ -14,8 +14,20 @@ class TripStore {
 
 	// Reactive state
 	currentTrip = writable<Trip | null>(null);
+	allTrips = writable<Trip[]>([]);
 	isLoading = writable<boolean>(false);
 	error = writable<string | null>(null);
+
+	/**
+	 * Load all trips into the allTrips store
+	 */
+	async loadAllTrips(): Promise<void> {
+		if (!this.tripService) return;
+		const result = await this.tripService.listTrips();
+		if (result.success) {
+			this.allTrips.set(result.data);
+		}
+	}
 
 	/**
 	 * Initialize the store with service dependencies
@@ -53,6 +65,8 @@ class TripStore {
 				// No last trip, create a new one
 				await this.createTrip('New Grocery Trip');
 			}
+
+			await this.loadAllTrips();
 		} catch (err) {
 			const errorMessage = err instanceof Error ? err.message : 'Failed to initialize';
 			this.error.set(errorMessage);
@@ -78,6 +92,7 @@ class TripStore {
 			if (result.success) {
 				this.currentTrip.set(result.data);
 				this.settingsService.saveLastLoadedTripId(result.data.id);
+				await this.loadAllTrips();
 			} else {
 				this.error.set(result.error.message);
 			}
@@ -144,6 +159,44 @@ class TripStore {
 			}
 		} catch (err) {
 			const errorMessage = err instanceof Error ? err.message : 'Failed to save trip';
+			this.error.set(errorMessage);
+		} finally {
+			this.isLoading.set(false);
+		}
+	}
+
+	/**
+	 * Reset the current trip - saves current state first, then clears all stores and items
+	 */
+	async resetCurrentTrip(): Promise<void> {
+		if (!this.tripService || !this.settingsService) {
+			throw new Error('Services not initialized');
+		}
+
+		const trip = get(this.currentTrip);
+		if (!trip) return;
+
+		this.isLoading.set(true);
+		this.error.set(null);
+
+		try {
+			// Save current state before resetting
+			await this.tripService.saveTrip(trip);
+
+			// Reset stores and items
+			const resetTrip: Trip = { ...trip, stores: [], items: [] };
+			const saveResult = await this.tripService.saveTrip(resetTrip);
+
+			if (saveResult.success) {
+				// Reload to re-initialize idGenerator with empty trip
+				const loadResult = await this.tripService.loadTrip(trip.id);
+				this.currentTrip.set(loadResult.success ? loadResult.data : saveResult.data);
+				await this.loadAllTrips();
+			} else {
+				this.error.set(saveResult.error.message);
+			}
+		} catch (err) {
+			const errorMessage = err instanceof Error ? err.message : 'Failed to reset trip';
 			this.error.set(errorMessage);
 		} finally {
 			this.isLoading.set(false);

@@ -9,6 +9,7 @@
 	import ItemList from '$lib/components/items/ItemList.svelte';
 	import AddItemForm from '$lib/components/items/AddItemForm.svelte';
 	import Button from '$lib/components/common/Button.svelte';
+	import TripManager from '$lib/components/trips/TripManager.svelte';
 
 	/** @type {number | null} */
 	let activeStoreId = null;
@@ -60,6 +61,8 @@
 			</Button>
 		</div>
 	</header>
+
+	<TripManager />
 
 	{#if $error}
 		<div class="error-banner">
