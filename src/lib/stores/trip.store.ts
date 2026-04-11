@@ -166,6 +166,36 @@ class TripStore {
 	}
 
 	/**
+	 * Rename the current trip and save
+	 */
+	async renameCurrentTrip(name: string): Promise<void> {
+		if (!this.tripService) throw new Error('Services not initialized');
+
+		const trip = get(this.currentTrip);
+		if (!trip || !name.trim()) return;
+
+		this.isLoading.set(true);
+		this.error.set(null);
+
+		try {
+			const renamedTrip: Trip = { ...trip, name: name.trim() };
+			const result = await this.tripService.saveTrip(renamedTrip);
+
+			if (result.success) {
+				this.currentTrip.set(result.data);
+				await this.loadAllTrips();
+			} else {
+				this.error.set(result.error.message);
+			}
+		} catch (err) {
+			const errorMessage = err instanceof Error ? err.message : 'Failed to rename trip';
+			this.error.set(errorMessage);
+		} finally {
+			this.isLoading.set(false);
+		}
+	}
+
+	/**
 	 * Reset the current trip - saves current state first, then clears all stores and items
 	 */
 	async resetCurrentTrip(): Promise<void> {

@@ -15,6 +15,8 @@
 	let activeStoreId = null;
 	let showAddStore = false;
 	let saveMessage = '';
+	let editingTripName = false;
+	let tripNameValue = '';
 
 	const { currentTrip, error, isLoading } = tripStore;
 
@@ -47,11 +49,47 @@
 	function handleAddStoreClose() {
 		showAddStore = false;
 	}
+
+	function startEditingTripName() {
+		tripNameValue = $currentTrip?.name || '';
+		editingTripName = true;
+	}
+
+	async function commitTripName() {
+		editingTripName = false;
+		if (tripNameValue.trim() && tripNameValue.trim() !== $currentTrip?.name) {
+			await tripStore.renameCurrentTrip(tripNameValue.trim());
+		}
+	}
+
+	/** @param {KeyboardEvent} e */
+	function handleTripNameKeydown(e) {
+		if (e.key === 'Enter') commitTripName();
+		if (e.key === 'Escape') editingTripName = false;
+	}
 </script>
 
 <div class="app-container">
 	<header class="app-header">
-		<h1>{$currentTrip?.name || 'Grocer'}</h1>
+		{#if editingTripName}
+			<input
+				class="trip-name-input"
+				bind:value={tripNameValue}
+				on:blur={commitTripName}
+				on:keydown={handleTripNameKeydown}
+				disabled={$isLoading}
+				autofocus
+			/>
+		{:else}
+			<h1
+				class="trip-name"
+				on:click={startEditingTripName}
+				title="Click to rename"
+				role="button"
+				tabindex="0"
+				on:keydown={(e) => e.key === 'Enter' && startEditingTripName()}
+			>{$currentTrip?.name || 'Grocer'}</h1>
+		{/if}
 		<div class="header-actions">
 			{#if saveMessage}
 				<span class="save-message">{saveMessage}</span>
@@ -120,10 +158,27 @@
 		box-shadow: var(--shadow-sm);
 	}
 
-	.app-header h1 {
+	.trip-name {
 		margin: 0;
 		font-size: var(--font-size-2xl);
 		color: var(--color-text);
+		cursor: pointer;
+	}
+
+	.trip-name:hover {
+		text-decoration: underline dotted;
+	}
+
+	.trip-name-input {
+		font-size: var(--font-size-2xl);
+		font-weight: bold;
+		color: var(--color-text);
+		background: transparent;
+		border: none;
+		border-bottom: 2px solid var(--color-primary);
+		outline: none;
+		padding: 0;
+		width: 260px;
 	}
 
 	.header-actions {
